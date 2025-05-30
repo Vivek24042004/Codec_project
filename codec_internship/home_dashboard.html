@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home Control Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --card-bg: #ffffff;
+            --body-bg: #f0f2f5;
+            --border: #e0e0e0;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --focus: rgba(67, 97, 238, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--body-bg);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Accessibility enhancements */
+        a:focus, button:focus, input:focus {
+            outline: 3px solid var(--focus);
+            outline-offset: 2px;
+        }
+
+        /* Header styles */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo i {
+            font-size: 2rem;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+
+        /* Main content layout */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 12px var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            font-size: 1.6rem;
+            color: var(--primary);
+        }
+
+        /* Status indicator */
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background-color: #e9ecef;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .online {
+            background-color: var(--success);
+        }
+
+        .offline {
+            background-color: var(--danger);
+        }
+
+        /* Device controls */
+        .device {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .device:last-child {
+            border-bottom: none;
+        }
+
+        .device-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .device-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .device-location {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .device-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        /* Thermostat specific styles */
+        .thermostat-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .temperature {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .temp-unit {
+            font-size: 1.2rem;
+            color: var(--gray);
+            align-self: flex-start;
+            margin-top: 10px;
+        }
+
+        .temp-controls {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 15px;
+        }
+
+        .temp-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+
+        .temp-btn:hover {
+            background-color: var(--secondary);
+        }
+
+        /* Security section */
+        .security-status {
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 12px;
+            background-color: #e9f5ff;
+        }
+
+        .security-status.armed {
+            background-color: #ffeaea;
+        }
+
+        .security-mode {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .armed {
+            color: var(--danger);
+        }
+
+        .disarmed {
+            color: var(--success);
+        }
+
+        .security-btn {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .arm-btn {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .disarm-btn {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .security-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+
+        /* Activity log */
+        .activity-log {
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .activity-icon i {
+            color: var(--primary);
+        }
+
+        .activity-details {
+            flex-grow: 1;
+        }
+
+        .activity-time {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-top: 3px;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-top: 20px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .device {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .device-controls {
+                align-self: flex-end;
+            }
+        }
+
+        /* Animation for status updates */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <i class="fas fa-home"></i>
+            <h1>Smart Home Control</h1>
+        </div>
+        <div class="user-info">
+            <div>
+                <p>Welcome, Sarah</p>
+                <small>Last login: Today, 08:45 AM</small>
+            </div>
+            <img src="https://ui-avatars.com/api/?name=Sarah+J&background=random" alt="User profile">
+        </div>
+    </header>
+
+    <main class="dashboard">
+        <!-- Lighting Section -->
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-lightbulb"></i> Lighting</h2>
+                <div class="status">
+                    <span class="status-indicator online"></span>
+                    <span>All Systems Online</span>
+                </div>
+            </div>
+            
+            <div class="device">
+                <div class="device-info">
+                    <div class="device-name">Living Room Lights</div>
+                    <div class="device-location">Main Floor</div>
+                </div>
+                <div class="device-controls">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="living-room-lights" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="device">
+                <div class="device-info">
+                    <div class="device-name">Kitchen Lights</div>
+                    <div class="device-location">Main Floor</div>
+                </div>
+                <div class="device-controls">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="kitchen-lights" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="device">
+                <div class="device-info">
+                    <div class="device-name">Bedroom Lights</div>
+                    <div class="device-location">Second Floor</div>
+                </div>
+                <div class="device-controls">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="bedroom-lights">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="device">
+                <div class="device-info">
+                    <div class="device-name">Outdoor Lights</div>
+                    <div class="device-location">Front Yard</div>
+                </div>
+                <div class="device-controls">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="outdoor-lights">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- Climate Control Section -->
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-thermometer-half"></i> Climate</h2>
+                <div class="status">
+                    <span class="status-indicator online"></span>
+                    <span>Online</span>
+                </div>
+            </div>
+            
+            <div class="thermostat-display">
+                <div class="temperature" id="current-temp">22</div>
+                <div class="temp-unit">°C</div>
+            </div>
+            
+            <div class="temp-controls">
+                <button class="temp-btn" id="temp-down" aria-label="Decrease temperature">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <div class="set-temp">
+                    <div>Set to: <span id="target-temp">22</span>°C</div>
+                    <div class="mode">Mode: <span id="thermostat-mode">Cooling</span></div>
+                </div>
+                <button class="temp-btn" id="temp-up" aria-label="Increase temperature">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            
+            <div class="device" style="margin-top: 20px;">
+                <div class="device-info">
+                    <div class="device-name">Living Room AC</div>
+                    <div class="device-location">Main Floor</div>
+                </div>
+                <div class="device-controls">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="ac-power" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- Security Section -->
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-shield-alt"></i> Security</h2>
+                <div class="status">
+                    <span class="status-indicator online"></span>
+                    <span>Online</span>
+                </div>
+            </div>
+            
+            <div class="security-status">
+                <div class="security-mode disarmed" id="security-status">DISARMED</div>
+                <p>Security system is currently disarmed</p>
+                <button class="security-btn arm-btn" id="arm-btn">ARM SYSTEM</button>
+            </div>
+            
+            <div class="device">
+                <div class="device-info">
+                    <div class="device-name">Front Door</div>
+                    <div class="device-location">Main Entrance</div>
+                </div>
+                <div class="device-controls">
+                    <span class="status locked">Locked</span>
+                </div>
+            </div>
+            
+            <div class="device">
+                <div class="device-info">
+                    <div class="device-name">Security Cameras</div>
+                    <div class="device-location">All Areas</div>
+                </div>
+                <div class="device-controls">
+                    <span class="status online">Active</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Activity Log -->
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-history"></i> Recent Activity</h2>
+            </div>
+            
+            <div class="activity-log" id="activity-log">
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <div class="activity-details">
+                        <div>Living Room Lights turned on</div>
+                        <div class="activity-time">Just now</div>
+                    </div>
+                </div>
+                
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="activity-details">
+                        <div>Front Door unlocked by Sarah</div>
+                        <div class="activity-time">15 minutes ago</div>
+                    </div>
+                </div>
+                
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-thermometer-half"></i>
+                    </div>
+                    <div class="activity-details">
+                        <div>Temperature set to 22°C</div>
+                        <div class="activity-time">1 hour ago</div>
+                    </div>
+                </div>
+                
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="activity-details">
+                        <div>Security system disarmed</div>
+                        <div class="activity-time">Today, 08:30 AM</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Smart Home Control Dashboard v2.1 | All systems operational</p>
+        <p>Last updated: <span id="update-time">Just now</span></p>
+    </footer>
+
+    <script>
+        // DOM Elements
+        const lights = document.querySelectorAll('.toggle-switch input');
+        const tempDisplay = document.getElementById('current-temp');
+        const targetTempDisplay = document.getElementById('target-temp');
+        const tempDownBtn = document.getElementById('temp-down');
+        const tempUpBtn = document.getElementById('temp-up');
+        const acPower = document.getElementById('ac-power');
+        const securityStatus = document.getElementById('security-status');
+        const armBtn = document.getElementById('arm-btn');
+        const activityLog = document.getElementById('activity-log');
+        const updateTime = document.getElementById('update-time');
+
+        // State variables
+        let currentTemp = 22;
+        let targetTemp = 22;
+        let securityArmed = false;
+        let lastUpdate = new Date();
+
+        // Initialize
+        function initDashboard() {
+            // Set initial states
+            updateDateTime();
+            
+            // Set up event listeners
+            lights.forEach(light => {
+                light.addEventListener('change', toggleLight);
+            });
+            
+            tempDownBtn.addEventListener('click', decreaseTemp);
+            tempUpBtn.addEventListener('click', increaseTemp);
+            acPower.addEventListener('change', toggleAC);
+            armBtn.addEventListener('click', toggleSecurity);
+            
+            // Simulate real-time updates
+            setInterval(updateTemperatures, 5000);
+            setInterval(updateDateTime, 60000);
+        }
+
+        // Light control
+        function toggleLight(e) {
+            const lightId = e.target.id;
+            const isOn = e.target.checked;
+            const lightName = lightId.split('-').slice(0, -1).map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+            
+            addActivityLog(
+                'fas fa-lightbulb',
+                `${lightName} turned ${isOn ? 'on' : 'off'}`,
+                'Just now'
+            );
+        }
+
+        // Temperature control
+        function decreaseTemp() {
+            if (targetTemp > 16) {
+                targetTemp--;
+                updateTargetTemp();
+            }
+        }
+
+        function increaseTemp() {
+            if (targetTemp < 30) {
+                targetTemp++;
+                updateTargetTemp();
+            }
+        }
+
+        function updateTargetTemp() {
+            targetTempDisplay.textContent = targetTemp;
+            addActivityLog(
+                'fas fa-thermometer-half',
+                `Temperature set to ${targetTemp}°C`,
+                'Just now'
+            );
+        }
+
+        function updateTemperatures() {
+            // Simulate temperature changes
+            if (acPower.checked) {
+                if (currentTemp > targetTemp) {
+                    currentTemp -= 0.5;
+                } else if (currentTemp < targetTemp) {
+                    currentTemp += 0.5;
+                }
+            } else {
+                // Slowly approach room temperature if AC is off
+                if (currentTemp > 22) currentTemp -= 0.1;
+                if (currentTemp < 22) currentTemp += 0.1;
+            }
+            
+            tempDisplay.textContent = currentTemp.toFixed(1);
+            tempDisplay.classList.add('pulse');
+            setTimeout(() => tempDisplay.classList.remove('pulse'), 500);
+            
+            // Update mode display
+            const modeDisplay = document.getElementById('thermostat-mode');
+            if (currentTemp > targetTemp) {
+                modeDisplay.textContent = 'Cooling';
+            } else if (currentTemp < targetTemp) {
+                modeDisplay.textContent = 'Heating';
+            } else {
+                modeDisplay.textContent = 'Maintaining';
+            }
+        }
+
+        // AC control
+        function toggleAC(e) {
+            const isOn = e.target.checked;
+            addActivityLog(
+                'fas fa-snowflake',
+                `AC turned ${isOn ? 'on' : 'off'}`,
+                'Just now'
+            );
+        }
+
+        // Security control
+        function toggleSecurity() {
+            securityArmed = !securityArmed;
+            
+            const statusDiv = document.querySelector('.security-status');
+            if (securityArmed) {
+                securityStatus.textContent = 'ARMED';
+                securityStatus.className = 'security-mode armed';
+                statusDiv.className = 'security-status armed';
+                armBtn.textContent = 'DISARM SYSTEM';
+                armBtn.className = 'security-btn disarm-btn';
+                
+                addActivityLog(
+                    'fas fa-shield-alt',
+                    'Security system armed',
+                    'Just now'
+                );
+            } else {
+                securityStatus.textContent = 'DISARMED';
+                securityStatus.className = 'security-mode disarmed';
+                statusDiv.className = 'security-status';
+                armBtn.textContent = 'ARM SYSTEM';
+                armBtn.className = 'security-btn arm-btn';
+                
+                addActivityLog(
+                    'fas fa-shield-alt',
+                    'Security system disarmed',
+                    'Just now'
+                );
+            }
+        }
+
+        // Activity log
+        function addActivityLog(icon, text, time) {
+            const activityItem = document.createElement('div');
+            activityItem.className = 'activity-item';
+            
+            activityItem.innerHTML = `
+                <div class="activity-icon">
+                    <i class="${icon}"></i>
+                </div>
+                <div class="activity-details">
+                    <div>${text}</div>
+                    <div class="activity-time">${time}</div>
+                </div>
+            `;
+            
+            activityLog.insertBefore(activityItem, activityLog.firstChild);
+            
+            // Limit to 10 items
+            if (activityLog.children.length > 10) {
+                activityLog.removeChild(activityLog.lastChild);
+            }
+        }
+
+        // Update time display
+        function updateDateTime() {
+            lastUpdate = new Date();
+            const timeString = lastUpdate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            updateTime.textContent = `Today, ${timeString}`;
+        }
+
+        // Initialize dashboard when page loads
+        window.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>
